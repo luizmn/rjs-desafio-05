@@ -1,1 +1,86 @@
-// TODO
+.post {
+  // position: absolute;
+  align-items: center;
+  width: 700px;
+  height: 108px;
+  left: 370px;
+  top: 170px;
+}
+
+.title {
+  font-size: 28px;
+
+  font-family: Inter;
+  font-style: bold;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 34px;
+
+  text-align: justify;
+  letter-spacing: -0.5px;
+
+  color: var(--heading);
+}
+
+.subtitle {
+  // width: 500px;
+  font-size: 18px;
+
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 22px;
+
+  text-align: justify;
+  letter-spacing: -0.5px;
+
+  color: var(--body);
+}
+
+.info {
+  // position: absolute;
+  left: 0%;
+  right: 62.43%;
+  top: 81.48%;
+  bottom: 0%;
+}
+
+.createdAt {
+  width: 109px;
+  height: 20px;
+  // position: absolute;
+  left: 0%;
+  right: 84.43%;
+  top: 81.48%;
+  bottom: 0%;
+}
+
+.author {
+  width: 130px;
+  height: 20px;
+  left: 133px;
+
+  // position: absolute;
+  right: 62.43%;
+  top: 81.48%;
+  bottom: 0%;
+}
+
+.loadButton {
+  position: absolute;
+  width: 176px;
+  height: 22px;
+  left: 368px;
+  top: 966px;
+
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 22px;
+
+  text-align: justify;
+
+  color: var(--highlight);
+}
