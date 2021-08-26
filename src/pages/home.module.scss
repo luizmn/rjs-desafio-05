@@ -2,10 +2,6 @@
   align-items: center;
   justify-content: justify;
   max-width: 1400px;
-
-  // display: block;
-  border: 2px solid red;
-  // margin: 2rem;
 }
 
 .post {
@@ -40,50 +36,20 @@
 }
 
 .info {
-  // gap: 10px;
   line-height: 3rem;
-  // letter-spacing: 1px;
+
   & > span {
     color: var(--info);
     margin: 1rem 1rem 1rem 0;
   }
 }
 
-.createdAt {
-  width: 109px;
-  height: 20px;
-  // position: absolute;
-  left: 0%;
-  right: 84.43%;
-  top: 81.48%;
-  bottom: 0%;
-}
-
-.author {
-  width: 130px;
-  height: 20px;
-  left: 133px;
-
-  // position: absolute;
-  right: 62.43%;
-  top: 81.48%;
-  bottom: 0%;
-}
-
 .loadMore {
-  // position: absolute;
-  // width: 176px;
-  // height: 22px;
-  // left: 368px;
-  // top: 966px;
-  // margin-top: 1rem;
-  padding: 10rem 0 0 0rem;
-  // font-family: "Roboto", sans-serif;
-  font-style: normal;
+  display: flex;
+  margin: 4rem 0;
   font-weight: 600;
   font-size: 18px;
   line-height: 22px;
-
   text-align: justify;
 
   color: var(--highlight);
