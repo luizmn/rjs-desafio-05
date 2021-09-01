@@ -1,16 +1,13 @@
-import Head from "next/head";
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Image from "next/image";
 import Link from "next/link";
 
 import styles from "./header.module.scss";
 
-export default function Header(post) {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export default function Header() {
   return (
     <>
-      <Head>
-        {!post && <title>spacetraveling</title>}
-        {post && <title>{post.title} | spacetraveling</title>}
-      </Head>
       <header className={styles.logo}>
         <Link href="/">
           <a>
