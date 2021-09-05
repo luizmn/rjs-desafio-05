@@ -147,8 +147,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
       slug: post.uid,
     },
   }));
-  // console.log("paths");
-  // console.log(paths);
+  console.log("paths");
+  console.log(paths);
   return {
     paths,
     fallback: true,
@@ -187,40 +187,23 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         }))
       },
     };
-
-    // console.log("POSTS AFTER ALTER")
-    // console.log(post.data.content[0].body.text.length)
-        // data: {
-    //   title: string;
-    //   banner: {
-    //     url: string;
-    //   };
-    //   author: string;
-    //   content: {
-    //     heading: string;
-    //     body: {
-    //       text: string;
-    //     }[];
-    //   }[];
-    // };
-
-  //   title: postsResponse.data.title,
-  //   author: postsResponse.data.author,
-  //   img: postsResponse.data.banner.url,
-  //   imgAlt: postsResponse.data.banner.alt,
-  //   imgWidth: postsResponse.data.banner.dimensions.width,
-  //   imgHeight: postsResponse.data.banner.dimensions.height,
-  //   content: postsResponse?.data.content.map((content) => ({
-  //     heading: content.heading,
-  //     text: [...content.body],
-  //   })),
-  // };
-
-
-
+    const prevPageResponse = await prismic.query(
+      [
+        Prismic.predicates.dateBefore(
+          'document.first_publication_date',
+          post.first_publication_date
+        ),
+      ],
+      {
+        pageSize: 1,
+      }
+    );
+    console.log("prevPageResponse")
+console.log(prevPageResponse)
     return {
       props: {
         post,
+        prevPageResponse
       },
     };
   } else {

@@ -3,19 +3,25 @@ import { GetStaticPaths, GetStaticProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 
+import axios from "axios";
+
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 
 import { FiCalendar, FiUser } from "react-icons/fi";
-import ReactPaginate from "react-paginate";
+
 import Prismic from "@prismicio/client";
-import { RichText } from "prismic-dom";
+// import { RichText } from "prismic-dom";
+import { RichText } from "prismic-reactjs";
 import { getPrismicClient } from "../services/prismic";
 
 import commonStyles from "../styles/common.module.scss";
 import styles from "./home.module.scss";
 
 import Header from "../components/Header";
+import TextField from "../components/LinkResolver";
+
+import { linkResolver } from "../components/LinkResolver";
 
 interface Post {
   uid?: string;
@@ -38,70 +44,78 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
 // export default function Home({ props }: HomeProps) {
+  let morePages;
+  let actualPage = 0;
+  // let morePagesButton = "";
 
-  // console.log("postsPagination")
-  // console.log(postsPagination.results)
-
-
-  const [postsData, setPostsData] = useState<PostPagination>({postsPagination});
-  console.log("postsData")
-  console.log(postsData.postsPagination)
-
+  const [morePosts, setMorePosts] = useState<PostPagination>({
+     postsPagination,
+   });
 
   const [posts, setPosts] = useState(postsPagination.results);
+  const [pagesQuantity, setPagesQuantity] = useState(
+    Math.floor(postsPagination.results.length / 2)
+  );
 
-  const [counter, setCounter] = useState(0);
-
-  async function loadMorePosts(): Promise<void> {
-
-    setCounter(counter + 1);
-    // console.log("postsData.next_page")
-    // console.log(postsData.title)
-
-    const response = await fetch(`${postsPagination.next_page}`).then((data) =>
-      data.json()
-    );
-
-    // console.log("loadmoreposts response")
-    // console.log(response)
-
-    const postsResponseResults = postsData.results.map(post => ({
-      ...post,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'dd MMM yyyy',
-        {
-          locale: ptBR,
-        }
-      ),
-    }));
-
-    // console.log("postsResponseResults")
-    // console.log(postsResponseResults)
-
-    // postsResponse.results.map((post: any) => {
-    //   return {
-    //     uid: post.uid,
-    //     first_publication_date: format(
-    //       new Date(parseISO(post.first_publication_date)),
-    //       "dd MMM yyyy",
-    //       { locale: ptBR }
-    //     ),
-    //     title: post.data.title,
-    //     subtitle: post?.data.subtitle,
-    //     author: post.data.author,
-    // }
-    // })
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+  // const [currentPage, setCurrentPage] = useState(0);
 
 
-    const newPosts = {
-      ...posts,
-      next_page: response.next_page,
-      results: [...posts.results, ...postsResponseResults],
-    };
+  function paginatePosts(array, page_size, page_number) {
+    // const page_size = 2;
+    return array.slice(page_number * page_size, page_number * page_size + page_size);
+  };
 
-    setPosts(newPosts);
-  }
+  const initialPaginatedPosts = paginatePosts(postsPagination.results, 2, actualPage)
+
+  const [postsPaginated, setPostsPaginated] = useState(initialPaginatedPosts);
+
+  async function loadMorePosts(e): Promise<void> {
+    e.preventDefault();
+
+    try {
+      const postsResults = await axios
+        .get(`${nextPage}`)
+        .then((response) => {
+          setNextPage(response.data.next_page);
+          return response.data.results;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+
+      const newPosts = postsResults.map((post) => {
+        return {
+          uid: post.uid,
+          first_publication_date: format(
+            new Date(post.first_publication_date),
+            "dd MMM yyyy",
+            {
+              locale: ptBR,
+            }
+          ),
+          data: {
+            title: post.data.title,
+            subtitle: post.data.subtitle,
+            author: post.data.author,
+          },
+        };
+      });
+
+      setPosts([...posts, ...newPosts]);
+
+     } catch (error) {
+       console.error(error);
+     }
+   }
+
+
+  // Array pagination function
+  // array, page_size, page_number
+  // const paginateGood = (array, page_size, page_number) => {
+  //   return array.slice(page_number * page_size, page_number * page_size + page_size);
+  // };
+
 
   return (
     <div className={commonStyles.container}>
@@ -109,6 +123,7 @@ export default function Home({ postsPagination }: HomeProps) {
         <title>Posts</title>
       </Head>
       <Header />
+      <div>
       {posts.map((post) => (
         <div className={styles.post} key={post.uid}>
           <Link href={`/post/${post.uid}`}>
@@ -125,38 +140,17 @@ export default function Home({ postsPagination }: HomeProps) {
             <span>
               <FiUser />
             </span>
-            <span>{post.data.author}</span>
+            <span>{post.author}</span>
           </div>
         </div>
       ))}
-      {/* <ReactPaginate
-        previousLabel={""}
-        nextLabel={""}
-        breakLabel={""}
-        breakClassName={"break-me"}
-        pageCount={pageCount}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={posts.total_pages}
-        onPageChange={handlePageClick}
-        containerClassName={"pagination"}
-        subContainerClassName={"pages pagination"}
-        activeClassName={"active"}
-      /> */}
+      </div>
+      {nextPage && (
+        <button type="button" onClick={loadMorePosts}>
+          Carregar mais posts
+        </button>
+      )}
 
-
-      {/* {posts.next_page !== null && (
-        <span className={commonStyles.loadMore}>Carregar mais posts</span>
-        )} */}
-      {/* {!posts.next_page ? (
-        <span className={commonStyles.loadMore}>Carregar mais posts</span>
-      ) : (
-        <h1>sim</h1>
-      )} */}
-      {/* {posts[page].next_page !== null && <button onClick={nextPage}>Carregar mais posts</button>}
-      {posts[page].next_page === null && <h1>Nao ha mais posts</h1>} */}
-      <button type="button" onClick={loadMorePosts}>
-        Carregar mais posts
-      </button>
     </div>
   )
 }
@@ -167,7 +161,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     [Prismic.Predicates.at("document.type", "posts")],
     {
       fetch: ["posts.title", "posts.uid"],
-      pageSize: 20,
+      pageSize: 5,
     }
   )
 
@@ -177,8 +171,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       slug: post.uid,
     },
   }))
-  // console.log("paths as index")
-  // console.log(paths)
+
   return {
     paths,
     fallback: true,
@@ -199,9 +192,23 @@ export const getStaticProps: GetStaticProps = async () => {
         "posts.data.content",
       ],
       pageSize: 2,
-    // page: 1,
+      orderings: "[document.first_publication_date desc]",
+      // page: 1,
     }
   )
+  //Query ALL Documents
+  // const postsResponse = await prismic
+  //   .query([Prismic.Predicates.at("document.type", "posts")
+  // ], {pageSize: 1, page: 1})
+  //   .then(
+  //     function (response) {
+  //       console.log("Documents: ", response.results);
+  //       return response;
+  //     },
+  //     function (err) {
+  //       console.log("Something went wrong: ", err);
+  //     });
+
 
   const posts = postsResponse.results.map((post: any) => {
     return {
@@ -226,7 +233,7 @@ export const getStaticProps: GetStaticProps = async () => {
 
   return {
     props: {
-      posts,
+      // posts,
       postsPagination,
     },
     revalidate: 60 * 1440, // 24 hours
