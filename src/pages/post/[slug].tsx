@@ -1,3 +1,5 @@
+/* eslint-disable no-return-assign */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -5,7 +7,6 @@ import { useRouter } from "next/router";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { FiCalendar, FiUser, FiClock } from "react-icons/fi";
 
-import readingTime from "reading-time";
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 
@@ -41,6 +42,7 @@ interface PostProps {
   post: Post;
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default function Post({ post }: PostProps) {
   const router = useRouter();
   if (router.isFallback) {
@@ -51,9 +53,10 @@ export default function Post({ post }: PostProps) {
     let accText = "";
     let total = 0;
     const totalWords = post.data.content.map(contentItem => {
-      total += contentItem.heading.split(' ').length;
-      contentItem.body.text.map(item => {
-        return (accText += item.text + " ");
+      total += contentItem.heading.split(" ").length;
+      contentItem.body.text.map((item) => {
+        //return console.log((accText += item.text + " ").length);
+        return (accText += `${item.text} `);
       });
       const accWordsText = accText.split(" ").length + total;
       return accWordsText;
@@ -115,6 +118,7 @@ export default function Post({ post }: PostProps) {
                     <h2>{postContent.heading}</h2>
                     <div
                       className={styles.postContent}
+                      // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{
                         __html: RichText.asHtml(postContent.body.text),
                       }}
@@ -187,24 +191,23 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         }))
       },
     };
-    const prevPageResponse = await prismic.query(
-      [
-        Prismic.predicates.dateBefore(
-          'document.first_publication_date',
-          post.first_publication_date
-        ),
-      ],
-      {
-        pageSize: 1,
-      }
-    );
-    console.log("prevPageResponse")
-console.log(prevPageResponse)
+    // const prevPageResponse = await prismic.query(
+    //   [
+    //     Prismic.predicates.dateBefore(
+    //       'document.first_publication_date',
+    //       post.first_publication_date
+    //     ),
+    //   ],
+    //   {
+    //     pageSize: 1,
+    //   }
+    // );
+
     return {
       props: {
         post,
-        prevPageResponse
-      },
+        // prevPageResponse
+    },
     };
   } else {
     const post = null;
