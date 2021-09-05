@@ -43,32 +43,9 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
-// export default function Home({ props }: HomeProps) {
-  let morePages;
-  let actualPage = 0;
-  // let morePagesButton = "";
-
-  const [morePosts, setMorePosts] = useState<PostPagination>({
-     postsPagination,
-   });
-
   const [posts, setPosts] = useState(postsPagination.results);
-  const [pagesQuantity, setPagesQuantity] = useState(
-    Math.floor(postsPagination.results.length / 2)
-  );
-
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
   // const [currentPage, setCurrentPage] = useState(0);
-
-
-  function paginatePosts(array, page_size, page_number) {
-    // const page_size = 2;
-    return array.slice(page_number * page_size, page_number * page_size + page_size);
-  };
-
-  const initialPaginatedPosts = paginatePosts(postsPagination.results, 2, actualPage)
-
-  const [postsPaginated, setPostsPaginated] = useState(initialPaginatedPosts);
 
   async function loadMorePosts(e): Promise<void> {
     e.preventDefault();
@@ -80,8 +57,8 @@ export default function Home({ postsPagination }: HomeProps) {
           setNextPage(response.data.next_page);
           return response.data.results;
         })
-        .catch(function (error) {
-          console.log(error);
+        .catch((error) => {
+          throw new Error(error);
         });
 
       const newPosts = postsResults.map((post) => {
@@ -109,14 +86,6 @@ export default function Home({ postsPagination }: HomeProps) {
      }
    }
 
-
-  // Array pagination function
-  // array, page_size, page_number
-  // const paginateGood = (array, page_size, page_number) => {
-  //   return array.slice(page_number * page_size, page_number * page_size + page_size);
-  // };
-
-
   return (
     <div className={commonStyles.container}>
       <Head>
@@ -140,17 +109,20 @@ export default function Home({ postsPagination }: HomeProps) {
             <span>
               <FiUser />
             </span>
-            <span>{post.author}</span>
+            <span>{post.data.author}</span>
           </div>
         </div>
       ))}
       </div>
       {nextPage && (
-        <button type="button" onClick={loadMorePosts}>
+        <button
+          type="button"
+          onClick={loadMorePosts}
+          className={commonStyles.loadMore}
+        >
           Carregar mais posts
         </button>
       )}
-
     </div>
   )
 }
@@ -233,7 +205,6 @@ export const getStaticProps: GetStaticProps = async () => {
 
   return {
     props: {
-      // posts,
       postsPagination,
     },
     revalidate: 60 * 1440, // 24 hours
