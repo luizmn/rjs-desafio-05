@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { useState, useEffect } from "react";
-import { GetStaticPaths, GetStaticProps } from "next";
+import { useState } from "react";
+import { GetStaticProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 
@@ -12,15 +12,12 @@ import ptBR from "date-fns/locale/pt-BR";
 import { FiCalendar, FiUser } from "react-icons/fi";
 
 import Prismic from "@prismicio/client";
-// import { RichText } from "prismic-dom";
-import { RichText } from "prismic-reactjs";
 import { getPrismicClient } from "../services/prismic";
 
 import commonStyles from "../styles/common.module.scss";
 import styles from "./home.module.scss";
 
 import Header from "../components/Header";
-
 
 interface Post {
   uid?: string;
@@ -45,21 +42,19 @@ interface HomeProps {
 export default function Home({ postsPagination }: HomeProps) {
   const [posts, setPosts] = useState(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
-  // const [currentPage, setCurrentPage] = useState(0);
 
-  async function loadMorePosts(e): Promise<void> {
-    e.preventDefault();
+  // eslint-disable-next-line consistent-return
+  async function loadMorePosts(): Promise<void> {
+    if (nextPage === null) {
+      return;
+    }
 
-    try {
       const postsResults = await axios
         .get(`${nextPage}`)
         .then((response) => {
           setNextPage(response.data.next_page);
           return response.data.results;
         })
-        .catch((error) => {
-          throw new Error(error);
-        });
 
       const newPosts = postsResults.map((post) => {
         return {
@@ -74,79 +69,53 @@ export default function Home({ postsPagination }: HomeProps) {
       });
 
       setPosts([...posts, ...newPosts]);
-
-     } catch (error) {
-       console.error(error);
-     }
    }
 
   return (
-    <div className={commonStyles.container}>
+    <>
       <Head>
-        <title>Posts</title>
+        <title>Home</title>
       </Head>
-      <Header />
-      <div>
-      {posts.map((post) => (
-          <div className={styles.post} key={post.uid}>
-          <Link href={`/post/${post.uid}`}>
-            <a>
-              <h1 className={commonStyles.title}>{post.data.title}</h1>
-              <p className={commonStyles.subtitle}>{post.data.subtitle}</p>
-            </a>
-          </Link>
-          <div className={commonStyles.info}>
-            <span>
-              <FiCalendar />
-            </span>
-            {/* <span>{post.first_publication_date}</span> */}
-            <span>{format(
-        new Date(parseISO(post.first_publication_date)),
-        "dd MMM yyyy",
-        { locale: ptBR }
-      )}</span>
-            <span>
-              <FiUser />
-            </span>
-            <span>{post.data.author}</span>
-          </div>
+      <div className={commonStyles.container}>
+        <Header />
+        <div>
+        {posts.map((post) => (
+            <div className={styles.post} key={post.uid}>
+              <Link href={`/post/${post.uid}`}>
+                <a>
+                  <h1 className={commonStyles.title}>{post.data.title}</h1>
+                  <p className={commonStyles.subtitle}>{post.data.subtitle}</p>
+                </a>
+              </Link>
+              <div className={commonStyles.info}>
+                <span>
+                  <FiCalendar />
+                </span>
+                <span>
+                  {format(
+                    new Date(parseISO(post.first_publication_date)),
+                    "dd MMM yyyy",
+                    { locale: ptBR }
+                  )}
+                </span>
+                <span>
+                  <FiUser />
+                </span>
+                <span>{post.data.author}</span>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+        {nextPage && (
+          <button
+            onClick={loadMorePosts}
+            className={commonStyles.loadMore}
+            type="button"
+          >Carregar mais posts</button>
+        )}
       </div>
-      {nextPage && (
-        <button
-          type="button"
-          onClick={loadMorePosts}
-          className={commonStyles.loadMore}
-        >
-          Carregar mais posts
-        </button>
-      )}
-    </div>
-  )
-}
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  const prismic = getPrismicClient();
-  const posts = await prismic.query(
-    [Prismic.Predicates.at("document.type", "posts")],
-    {
-      fetch: ["posts.title", "posts.uid"],
-      pageSize: 5,
-    }
-  )
-
-   const paths = posts.results.map((post) => ({
-    params: {
-      title: post.data.title,
-      slug: post.uid,
-    },
-  }))
-
-  return {
-    paths,
-    fallback: true,
-  };
+    </>
+  );
 }
 
 export const getStaticProps: GetStaticProps = async () => {
@@ -154,32 +123,12 @@ export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
-    [Prismic.Predicates.at("document.type", "posts"),
-    ],{
-      // fetch: [
-      //   "posts.data.title",
-      //   "posts.data.subtitle",
-      //   "posts.data.author",
-      //   "posts.data.content",
-      // ],
+    [Prismic.Predicates.at("document.type", "posts")],
+    {
       pageSize: 2,
       orderings: "[document.first_publication_date desc]",
-      // page: 1,
     }
   )
-  //Query ALL Documents
-  // const postsResponse = await prismic
-  //   .query([Prismic.Predicates.at("document.type", "posts")
-  // ], {pageSize: 1, page: 1})
-  //   .then(
-  //     function (response) {
-  //       console.log("Documents: ", response.results);
-  //       return response;
-  //     },
-  //     function (err) {
-  //       console.log("Something went wrong: ", err);
-  //     });
-
 
   const posts = postsResponse.results.map((post: any) => {
     return {
