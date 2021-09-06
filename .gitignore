@@ -32,7 +32,6 @@ yarn-error.log*
 *.log*
 /.changelog
 
-*.lock
 *.tgz
 
 # local env files

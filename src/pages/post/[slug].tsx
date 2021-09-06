@@ -24,8 +24,8 @@ interface Post {
     title: string;
     banner: {
       url: string;
-      imgWidth: number;
-      imgHeight: number;
+      // imgWidth: number;
+      // imgHeight: number;
       imgAlt: string;
     };
     author: string;
@@ -88,12 +88,7 @@ export default function Post({ post }: PostProps) {
           </Head>
           <Header />
           <span className={styles.fill}>
-            <Image
-              src={post.data.banner.url}
-              width={post.data.banner.imgWidth}
-              height={post.data.banner.imgHeight}
-              alt={post.data.banner.imgAlt}
-            />
+            <img src={post?.data.banner.url} alt={post?.data.banner.imgAlt} />
           </span>
           <div className={styles.container}>
             <h1>{post.data.title}</h1>
@@ -101,7 +96,11 @@ export default function Post({ post }: PostProps) {
               <span>
                 <FiCalendar />
               </span>
-              <span>{post.first_publication_date}</span>
+              <span>{format(
+        new Date(parseISO(post.first_publication_date)),
+        "dd MMM yyyy",
+        { locale: ptBR }
+      )}</span>
               <span>
                 <FiUser />
               </span>
@@ -151,8 +150,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
       slug: post.uid,
     },
   }));
-  console.log("paths");
-  console.log(paths);
+  // console.log("paths");
+  // console.log(paths);
   return {
     paths,
     fallback: true,
@@ -169,18 +168,14 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   if (typeof postsResponse !== "undefined") {
     const post = {
       slug,
-      first_publication_date: format(
-        new Date(parseISO(postsResponse?.first_publication_date)),
-        "dd MMM yyyy",
-        { locale: ptBR }
-      ),
+      first_publication_date: postsResponse?.first_publication_date,
       data: {
         title: postsResponse.data.title,
         banner: {
           url: postsResponse.data.banner.url,
           imgAlt: postsResponse.data.banner.alt,
-          imgWidth: postsResponse.data.banner.dimensions.width,
-          imgHeight: postsResponse.data.banner.dimensions.height,
+          // imgWidth: postsResponse.data.banner.dimensions.width,
+          // imgHeight: postsResponse.data.banner.dimensions.height,
         },
         author: postsResponse.data.author,
         content: postsResponse?.data.content.map((content) => ({

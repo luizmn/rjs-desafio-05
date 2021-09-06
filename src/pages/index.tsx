@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { useState, useEffect } from "react";
 import { GetStaticPaths, GetStaticProps } from "next";
 import Head from "next/head";
@@ -19,9 +20,7 @@ import commonStyles from "../styles/common.module.scss";
 import styles from "./home.module.scss";
 
 import Header from "../components/Header";
-import TextField from "../components/LinkResolver";
 
-import { linkResolver } from "../components/LinkResolver";
 
 interface Post {
   uid?: string;
@@ -42,6 +41,7 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default function Home({ postsPagination }: HomeProps) {
   const [posts, setPosts] = useState(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
@@ -64,13 +64,7 @@ export default function Home({ postsPagination }: HomeProps) {
       const newPosts = postsResults.map((post) => {
         return {
           uid: post.uid,
-          first_publication_date: format(
-            new Date(post.first_publication_date),
-            "dd MMM yyyy",
-            {
-              locale: ptBR,
-            }
-          ),
+          first_publication_date: post.first_publication_date,
           data: {
             title: post.data.title,
             subtitle: post.data.subtitle,
@@ -94,7 +88,7 @@ export default function Home({ postsPagination }: HomeProps) {
       <Header />
       <div>
       {posts.map((post) => (
-        <div className={styles.post} key={post.uid}>
+          <div className={styles.post} key={post.uid}>
           <Link href={`/post/${post.uid}`}>
             <a>
               <h1 className={commonStyles.title}>{post.data.title}</h1>
@@ -105,7 +99,12 @@ export default function Home({ postsPagination }: HomeProps) {
             <span>
               <FiCalendar />
             </span>
-            <span>{post.first_publication_date}</span>
+            {/* <span>{post.first_publication_date}</span> */}
+            <span>{format(
+        new Date(parseISO(post.first_publication_date)),
+        "dd MMM yyyy",
+        { locale: ptBR }
+      )}</span>
             <span>
               <FiUser />
             </span>
@@ -137,7 +136,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
   )
 
-  const paths = posts.results.map((post) => ({
+   const paths = posts.results.map((post) => ({
     params: {
       title: post.data.title,
       slug: post.uid,
@@ -157,12 +156,12 @@ export const getStaticProps: GetStaticProps = async () => {
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at("document.type", "posts"),
     ],{
-      fetch: [
-        "posts.data.title",
-        "posts.data.subtitle",
-        "posts.data.author",
-        "posts.data.content",
-      ],
+      // fetch: [
+      //   "posts.data.title",
+      //   "posts.data.subtitle",
+      //   "posts.data.author",
+      //   "posts.data.content",
+      // ],
       pageSize: 2,
       orderings: "[document.first_publication_date desc]",
       // page: 1,
@@ -185,11 +184,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postsResponse.results.map((post: any) => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(parseISO(post.first_publication_date)),
-        "dd MMM yyyy",
-        { locale: ptBR }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post?.data.subtitle,
