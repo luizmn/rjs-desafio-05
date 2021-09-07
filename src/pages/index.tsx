@@ -4,8 +4,6 @@ import { GetStaticProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 
-import axios from "axios";
-
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 
@@ -49,27 +47,27 @@ export default function Home({ postsPagination }: HomeProps) {
       return;
     }
 
-      const postsResults = await axios
-        .get(`${nextPage}`)
-        .then((response) => {
-          setNextPage(response.data.next_page);
-          return response.data.results;
-        })
-
-      const newPosts = postsResults.map((post) => {
-        return {
-          uid: post.uid,
-          first_publication_date: post.first_publication_date,
-          data: {
-            title: post.data.title,
-            subtitle: post.data.subtitle,
-            author: post.data.author,
-          },
-        };
+    const postsResults = await fetch(nextPage)
+      .then((response) => response.json())
+      .then((data) => {
+        setNextPage(data.next_page);
+        return data.results;
       });
 
-      setPosts([...posts, ...newPosts]);
-   }
+    const newPosts = postsResults.map((post) => {
+      return {
+        uid: post.uid,
+        first_publication_date: post.first_publication_date,
+        data: {
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
+        },
+      };
+    });
+
+    setPosts([...posts, ...newPosts]);
+  }
 
   return (
     <>
@@ -111,7 +109,9 @@ export default function Home({ postsPagination }: HomeProps) {
             onClick={loadMorePosts}
             className={commonStyles.loadMore}
             type="button"
-          >Carregar mais posts</button>
+          >
+            Carregar mais posts
+          </button>
         )}
       </div>
     </>
@@ -119,7 +119,6 @@ export default function Home({ postsPagination }: HomeProps) {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(

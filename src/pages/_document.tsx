@@ -14,11 +14,7 @@ export default class MyDocument extends Document {
             rel="stylesheet"
           />
 
-          <link
-            rel="shortcut icon"
-            type="image/png"
-            href="/static/images/favicon.png"
-          />
+          <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         </Head>
         <body>
           <Main />

@@ -1,23 +1,19 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { GetStaticPaths, GetStaticProps } from "next";
-import { FiCalendar, FiUser, FiClock } from "react-icons/fi";
-
+import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
-
+import { FiCalendar, FiUser, FiClock } from "react-icons/fi";
 import { RichText } from "prismic-dom";
 import Prismic from "@prismicio/client";
 import { getPrismicClient } from "../../services/prismic";
-
 import commonStyles from "../../styles/common.module.scss";
 import styles from "./post.module.scss";
 import Header from "../../components/Header";
-import { useMemo } from "react";
 
 interface Post {
   first_publication_date: string | null;
@@ -25,7 +21,6 @@ interface Post {
     title: string;
     banner: {
       url: string;
-      //imgAlt: string;
     };
     author: string;
     content: {
@@ -69,15 +64,12 @@ export default function Post({ post }: PostProps) {
     }
 
     let fullText = "";
-    const readWordsPerMinute = 200;
 
     post.data.content.forEach((postContent) => {
       fullText += postContent.heading;
       fullText += RichText.asText(postContent.body);
     });
-
-    const time = Math.ceil(fullText.split(/\s/g).length / readWordsPerMinute);
-
+    const time = Math.ceil(fullText.split(/\s/g).length / 200);
     return time;
   }, [post, router.isFallback]);
 
@@ -111,7 +103,8 @@ export default function Post({ post }: PostProps) {
               <span>
                 <FiCalendar />
               </span>
-              <span>{format(
+              <span>
+                {format(
                   new Date(parseISO(post.first_publication_date)),
                   "dd MMM yyyy",
                   { locale: ptBR }
@@ -173,8 +166,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { slug } = params;
 
   const prismic = getPrismicClient();
-
-  const postsResponse = await prismic.getByUID("posts", String(slug), {} || null);
+  const postsResponse = await prismic.getByUID(
+    "posts",
+    String(slug),
+    {} || null
+  );
 
   if (typeof postsResponse !== "undefined") {
     const post = {
@@ -212,14 +208,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         post,
       },
       revalidate: 1800,
-  };
+    };
   }
-  // else {
-  //   const post = null;
-  //   return {
-  //     props: {
-  //       post,
-  //     },
-  //   };
-  // }
 };
