@@ -14,9 +14,15 @@ import { getPrismicClient } from "../../services/prismic";
 import commonStyles from "../../styles/common.module.scss";
 import styles from "./post.module.scss";
 import Header from "../../components/Header";
+import Comments from "../../components/Utterances";
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
+  prevPostUid: string | null;
+  prevPostTitle: string | null;
+  nextPostUid: string | null;
+  nextPostTitle: string | null;
   data: {
     title: string;
     banner: {
@@ -118,7 +124,23 @@ export default function Post({ post }: PostProps) {
                 <FiClock />
               </span>
               <span>{`${readTime} min`}</span>
+              <div>
+                <span>
+                  Editado em{" "}
+                  {format(
+                    new Date(parseISO(post.last_publication_date)),
+                    "dd MMM yyyy",
+                    { locale: ptBR }
+                  )}{" "}
+                  &agrave;s{" "}
+                  {format(
+                    new Date(parseISO(post.first_publication_date)),
+                    "HH:mm"
+                  )}
+                </span>
+              </div>
             </div>
+
             <div className={styles.post}>
               {post.data.content.map((postContent) => {
                 return (
@@ -134,6 +156,34 @@ export default function Post({ post }: PostProps) {
                   </div>
                 );
               })}
+              <hr className={styles.divider} />
+              <div className={styles.grid}>
+                {post.prevPostUid && (
+                  <span className={styles.leftButton}>
+                    <Link href={`/post/${post.prevPostUid}`}>
+                      <a>
+                        <p className={commonStyles.subtitle}>
+                          {post.prevPostTitle}
+                        </p>
+                        Post anterior
+                      </a>
+                    </Link>
+                  </span>
+                )}
+                {post.nextPostUid && (
+                  <span className={styles.rightButton}>
+                    <Link href={`/post/${post.nextPostUid}`}>
+                      <a>
+                        <p className={commonStyles.subtitle}>
+                          {post.nextPostTitle}
+                        </p>
+                        Pr&oacute;ximo Post
+                      </a>
+                    </Link>
+                  </span>
+                )}
+              </div>
+              <Comments />
             </div>
           </div>
         </>
@@ -176,6 +226,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     const post = {
       uid: postsResponse.uid,
       first_publication_date: postsResponse?.first_publication_date,
+      last_publication_date: postsResponse?.last_publication_date,
       data: {
         title: postsResponse.data.title,
         subtitle: postsResponse.data.subtitle,
@@ -191,17 +242,45 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         })
       },
     };
-    // const prevPageResponse = await prismic.query(
-    //   [
-    //     Prismic.predicates.dateBefore(
-    //       'document.first_publication_date',
-    //       post.first_publication_date
-    //     ),
-    //   ],
-    //   {
-    //     pageSize: 1,
-    //   }
-    // );
+
+
+    const prevPostResponse = await prismic.query(
+      [
+        Prismic.predicates.dateBefore(
+          "document.first_publication_date",
+          post.first_publication_date
+        ),
+      ],
+      {
+        pageSize: 1,
+      }
+    );
+    if (prevPostResponse.total_results_size > 0) {
+      post.prevPostUid = prevPostResponse?.results[0].uid;
+      post.prevPostTitle = prevPostResponse?.results[0].data.title;
+    } else {
+      post.prevPostUid = null;
+    }
+
+
+    const nextPageResponse = await prismic.query(
+      [
+        Prismic.predicates.dateAfter(
+          "document.first_publication_date",
+          post.first_publication_date
+        ),
+      ],
+      {
+        pageSize: 1,
+      }
+    );
+    if (nextPageResponse.total_results_size > 0) {
+      post.nextPostUid = nextPageResponse?.results[0].uid;
+      post.nextPostTitle = nextPageResponse?.results[0].data.title;
+    } else {
+      post.nextPostUid = null;
+    }
+
 
     return {
       props: {
