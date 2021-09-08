@@ -16,7 +16,7 @@ import commonStyles from "../styles/common.module.scss";
 import styles from "./home.module.scss";
 
 import Header from "../components/Header";
-import ExitPreviewButton from "../components/ExitPreviewButton";
+
 
 interface Post {
   uid?: string;
@@ -88,7 +88,7 @@ export default function Home({ postsPagination, preview }: HomeProps) {
       <div className={commonStyles.container}>
         <Header />
         <div>
-        {posts.map((post) => (
+          {posts.map((post) => (
             <div className={styles.post} key={post.uid}>
               <Link href={`/post/${post.uid}`}>
                 <a>
@@ -124,15 +124,19 @@ export default function Home({ postsPagination, preview }: HomeProps) {
             Carregar mais posts
           </button>
         )}
-        {preview && <ExitPreviewButton>{preview}</ExitPreviewButton>}
+        {preview && (
+          <div className={styles.post}>
+            <Link href="/api/exit-preview/">
+              <a className={styles.exitButton}> Sair do modo Preview</a>
+            </Link>
+          </div>
+        )}
       </div>
     </>
   );
 }
 
-export const getStaticProps: GetStaticProps = async ({
-  preview = false
-}) => {
+export const getStaticProps: GetStaticProps = async ({ preview = false }) => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
@@ -140,11 +144,9 @@ export const getStaticProps: GetStaticProps = async ({
     {
       pageSize: 2,
       orderings: "[document.first_publication_date desc]",
-      // ref: preview?.ref ?? null,
     }
-  )
+  );
 
-  console.log("postsResponse", postsResponse)
   const posts = postsResponse.results.map((post: any) => {
     return {
       uid: post.uid,
@@ -153,7 +155,7 @@ export const getStaticProps: GetStaticProps = async ({
         title: post.data.title,
         subtitle: post?.data.subtitle,
         author: post.data.author,
-      }
+      },
     };
   });
 
@@ -168,5 +170,5 @@ export const getStaticProps: GetStaticProps = async ({
       preview,
     },
     revalidate: 60 * 1440, // 24 hours
-  }
-}
+  };
+};
