@@ -1,5 +1,5 @@
 import Prismic from "@prismicio/client";
-import { RichText } from "prismic-reactjs";
+import { Document } from "@prismicio/client/types/documents";
 
 export function getPrismicClient(req?: unknown) {
   const prismic = Prismic.client(process.env.PRISMIC_ENDPOINT,
@@ -10,12 +10,13 @@ export function getPrismicClient(req?: unknown) {
   return prismic;
 }
 
-// // In src/prismic-configuration.js
-// export const linkResolver = (doc?: any) => {
-//   // URL for a category type
-//   // if (doc.type === "posts") {
-//   return `/post/${doc.results.uid}`;
-//   // }
-//   // Backup for all other types
-//   return "/";
-// }
+export function linkResolver(doc: Document) {
+  switch (doc.type) {
+    case "posts":
+      return `/post/${doc.uid}`;
+    case "news":
+      return `/news/${doc.uid}`;
+    default:
+      return "/";
+  }
+}

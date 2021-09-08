@@ -4,7 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { GetStaticPaths, GetStaticProps } from "next";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 import { FiCalendar, FiUser, FiClock } from "react-icons/fi";
@@ -15,6 +15,7 @@ import commonStyles from "../../styles/common.module.scss";
 import styles from "./post.module.scss";
 import Header from "../../components/Header";
 import Comments from "../../components/Utterances";
+import ExitPreviewButton from "../../components/ExitPreviewButton";
 
 interface Post {
   first_publication_date: string | null;
@@ -40,28 +41,15 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export default function Post({ post }: PostProps) {
+export default function Post({ post, preview }: PostProps) {
   const router = useRouter();
   if (router.isFallback) {
     return <div className={commonStyles.loadMore}>Carregando...</div>;
   };
-
-  // function calcReadTime(words: any) {
-  // let accText = "";
-  // let total = 0;
-
-  // const totalWords = post.data.content.map((contentItem) => {
-  //   total += contentItem.heading.split(" ").length;
-  //   contentItem.body?.map((item) => {
-  //     return (accText += `${item.text} `);
-  //   });
-  //   const accWordsText = accText.split(" ").length + total;
-  //   return accWordsText;
-  // });
-  // const readTime = Math.ceil(totalWords[0].toString().length / 200);
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const readTime = useMemo(() => {
@@ -140,7 +128,6 @@ export default function Post({ post }: PostProps) {
                 </span>
               </div>
             </div>
-
             <div className={styles.post}>
               {post.data.content.map((postContent) => {
                 return (
@@ -184,6 +171,13 @@ export default function Post({ post }: PostProps) {
                 )}
               </div>
               <Comments />
+              {preview && (
+                <div className={styles.post}>
+                  <Link href="/api/exit-preview/">
+                    <a className={styles.exitButton}> Sair do modo Preview</a>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -212,15 +206,21 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps = async ({
+  params,
+  preview = false,
+  previewData,
+}) => {
   const { slug } = params;
 
+  // console.log ("previewData", res.previewData)
+  // const { previewData } = res.previewData;
+
+  // console.log("previewData SLUG", previewData);
   const prismic = getPrismicClient();
-  const postsResponse = await prismic.getByUID(
-    "posts",
-    String(slug),
-    {} || null
-  );
+  const postsResponse = await prismic.getByUID("posts", String(slug), {
+    ref: previewData?.ref || null,
+    });
 
   if (typeof postsResponse !== "undefined") {
     const post = {
@@ -242,7 +242,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         })
       },
     };
-
 
     const prevPostResponse = await prismic.query(
       [
@@ -285,6 +284,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     return {
       props: {
         post,
+        preview,
       },
       revalidate: 1800,
     };

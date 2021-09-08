@@ -16,6 +16,7 @@ import commonStyles from "../styles/common.module.scss";
 import styles from "./home.module.scss";
 
 import Header from "../components/Header";
+import ExitPreviewButton from "../components/ExitPreviewButton";
 
 interface Post {
   uid?: string;
@@ -34,10 +35,20 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
+  previewData: Post[] | null;
 }
 
+// interface Preview {
+//   preview: boolean;
+// }
+
+// interface PreviewData {
+//   previewData: Post[] | null;
+// }
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export default function Home({ postsPagination }: HomeProps) {
+export default function Home({ postsPagination, preview }: HomeProps) {
   const [posts, setPosts] = useState(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
@@ -113,12 +124,15 @@ export default function Home({ postsPagination }: HomeProps) {
             Carregar mais posts
           </button>
         )}
+        {preview && <ExitPreviewButton>{preview}</ExitPreviewButton>}
       </div>
     </>
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async ({
+  preview = false
+}) => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
@@ -126,9 +140,11 @@ export const getStaticProps: GetStaticProps = async () => {
     {
       pageSize: 2,
       orderings: "[document.first_publication_date desc]",
+      // ref: preview?.ref ?? null,
     }
   )
 
+  console.log("postsResponse", postsResponse)
   const posts = postsResponse.results.map((post: any) => {
     return {
       uid: post.uid,
@@ -149,6 +165,7 @@ export const getStaticProps: GetStaticProps = async () => {
   return {
     props: {
       postsPagination,
+      preview,
     },
     revalidate: 60 * 1440, // 24 hours
   }
